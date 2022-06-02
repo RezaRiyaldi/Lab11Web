@@ -1,0 +1,27 @@
+html, body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Navigasi */
+ul li a {
+    padding: 10px 20px !important;
+}
+
+a.active, a.nav-link:hover {
+    background-color: #fa11c0;
+}
+
+
+/* Banner */
+.banner {
+    padding-left: 20px;
+    padding-right: 20px;
+    background-color: rgb(245, 245, 245);
+}
+
+.banner h1 {
+    font-size: 50px;
+}
