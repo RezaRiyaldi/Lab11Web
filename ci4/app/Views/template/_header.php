@@ -39,7 +39,7 @@ $request = Services::request();
                             <a class="nav-link <?= $request->uri->getSegment(1) == '' ? 'active' : '' ?>" href="<?= base_url() ?>">Home</a>
                         </li>
                         <li class="nav-item">
-                            <a class="nav-link <?= $request->uri->getSegment(1) == 'article' ? 'active' : '' ?>" href="<?= base_url('article') ?>">Artikel</a>
+                            <a class="nav-link <?= $request->uri->getSegment(1) == 'artikel' ? 'active' : '' ?>" href="<?= base_url('artikel') ?>">Artikel</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link <?= $request->uri->getSegment(1) == 'about' ? 'active' : '' ?>" href="<?= base_url('about') ?>">About</a>
@@ -55,4 +55,4 @@ $request = Services::request();
 
         <div class="row m-0 my-4">
             <div class="col-md-9">
-                <div class="banner py-5 text-center">
+                <div class="banner py-5">

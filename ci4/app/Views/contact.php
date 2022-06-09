@@ -1,6 +1,6 @@
 <?= $this->include('template/_header'); ?>
 
-<h1 class="fw-light"><?= $title ?></h1>
+<h1 class="fw-light text-center"><?= $title ?></h1>
 
 <form action="" class="text-start">
     <div class="mb-2">

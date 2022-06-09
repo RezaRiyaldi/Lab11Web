@@ -15,15 +15,15 @@ class Page extends BaseController
         return view('home', $data);
     }
 
-    public function article()
-    {
-        $data = [
-            'title' => 'Article',
-            'content' => 'Ini adalah halaman article, banyak hal yang bisa diambil dan dipelajari didalam halaman ini. Enjoy'
-        ];
+    // public function article()
+    // {
+    //     $data = [
+    //         'title' => 'Article',
+    //         'content' => 'Ini adalah halaman article, banyak hal yang bisa diambil dan dipelajari didalam halaman ini. Enjoy'
+    //     ];
 
-        return view('article', $data);
-    }
+    //     return view('article', $data);
+    // }
 
     public function about()
     {

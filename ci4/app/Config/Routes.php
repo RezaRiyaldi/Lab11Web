@@ -36,7 +36,11 @@ $routes->get('/', 'Page::index');
 
 $routes->get('/about', 'Page::about');
 $routes->get('/contact', 'Page::contact');
-$routes->get('/article', 'Page::article');
+// $routes->get('/article', 'Page::article');
+
+// Artikel
+$routes->get('/artikel', 'Artikel::index');
+$routes->get('/artikel/(:any)', 'Artikel::detail_artikel/$1');
 
 /*
  * --------------------------------------------------------------------

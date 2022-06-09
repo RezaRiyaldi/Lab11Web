@@ -1,4 +1,4 @@
-# Tugas Lab 6 Web
+# Tugas Lab 11 Web (Praktikum 11)
 ## Profil
 | # | Biodata |
 | -------- | --- |
@@ -437,3 +437,179 @@ public function contact()
 
 + Maka hasilnya akan seperti berikut.
 ![contact](img/ss_result-contact.png)
+
+# Tugas Lab 11 Web (Praktikum 12 `CRUD`)
+## Langkah 1 `Membuat DB`
+1. Buat database baru dengan nama `lab_ci4` dengan query berikut.
+
+```SQL
+CREATE DATABASE lab_ci4;
+```
+2. Membuat Table baru dengan nama `artikel` dengan query berikut.
+
+```SQL
+CREATE TABLE artikel {
+    id INT(11) auto_increment,
+    judul VARCHAR(200) NOT NULL,
+    isi TEXT,
+    gambar VARCHAR(200),
+    status TINYINT(1) DEFAULT 0,
+    slug VARCHAR(200),
+    PRIMARY KEY(id)
+}
+```
+## Langkah 2 `Konfigurasi koneksi database`
+1. Buka file `.env`, lalu edit seperti berikut.
+
+![db](img/ss_env-db.png)
+
+## Langkah 3 `Membuat Model`
+1. Buat file baru dengan nama `ArtikelModel.php` pada direktori `app/Models`.
+2. Tambahkan kode berikut.
+
+```php
+<?php
+namespace App\Models;
+use CodeIgniter\Model;
+
+class ArtikelModel extends Model {
+    protected $table = 'artikel';
+    protected $primary = 'id';
+    protected $setAutoIncrement = TRUE;
+    protected $allowFields = ['judul', 'isi', 'status', 'slug', 'gambar'];
+}
+```
+
+## Langkah 4 `Membuat Controller`
+1. Buat file baru dengan nama `Artikel.php` pada direktori `app/Controller`.
+2. Tambahkan kode berikut.
+
+```php
+<?php
+namespace App\Controllers;
+
+use App\Models\ArtikelModel;
+use CodeIgniter\Controller;
+
+class Artikel extends Controller {
+    public function index()
+    {
+        $title = 'Daftar Artikel';
+        $model = new ArtikelModel();
+        $artikel = $model->findAll();
+
+        return view('artikel/home', compact('title', 'artikel'));
+    }
+}
+```
+
+## Langkah 5 `Membuat View`
+1. Buat file baru dengan nama `home.php` pada direktori `app/Views/artikel`.
+2. Tambahkan kode berikut.
+
+```php
+<?= $this->include('template/_header.php'); ?>
+
+<h1 class="display-4">Artikel</h1>
+
+<?php if ($artikels) : foreach ($artikels as $artikel) : ?>
+        <div class="card">
+            <div class="card-header">
+                <h2><a href="<?= base_url('artikel/') . $artikel['slug'] ?>"><?= $artikel['judul'] ?></a></h2>
+            </div>
+
+            <div class="card-body">
+                <p><?= substr($artikel['isi'], 0, 200) ?></p>
+            </div>
+        </div>
+    <?php endforeach;
+else : ?>
+<div class="card">
+    <div class="card-body">Belum ada data</div>
+</div>
+<?php endif; ?>
+
+<?= $this->include('template/_footer.php'); ?>
+```
+
+3. Maka hasilnya akan seperti berikut.
+
+![read-0](img/ss_read-0.png)
+
+4. Karena datanya belum ada, kita tambah data dengan menjalan query berikut diphpmyadmin.
+
+```SQL
+INSERT INTO artikel (judul, isi, slug) VALUE
+('Artikel pertama', 'Lorem Ipsum adalah contoh teks atau dummy dalam industri
+percetakan dan penataan huruf atau typesetting. Lorem Ipsum telah menjadi
+standar contoh teks sejak tahun 1500an, saat seorang tukang cetak yang tidak
+dikenal mengambil sebuah kumpulan teks dan mengacaknya untuk menjadi sebuah
+buku contoh huruf.', 'artikel-pertama'),
+('Artikel kedua', 'Tidak seperti anggapan banyak orang, Lorem Ipsum bukanlah
+teks-teks yang diacak. Ia berakar dari sebuah naskah sastra latin klasik dari
+era 45 sebelum masehi, hingga bisa dipastikan usianya telah mencapai lebih
+dari 2000 tahun.', 'artikel-kedua');
+```
+
+5. Maka hasilnya seperti berikut.
+
+![read-1](img/ss_read-1.png)
+
+## Langkah 6 `Detail View`
+1. Tambahkan method baru dengan nama `detail_artikel($slug)` pada Controller `Artikel.php`.
+2. Maka kodenya seperti berikut.
+
+```php
+public function detail_artikel($slug)
+{
+    $model = new ArtikelModel();
+    $artikel = $model->where([
+        'slug' => $slug
+    ])->first();
+
+    if (!$artikel) {
+        throw PageNotFoundException::forPageNotFound();
+    }
+    $title = $artikel['judul'];
+
+    return view('artikel/detail_artikel', compact('title', 'artikel'));
+}
+```
+
+3. Tambahkan Routes baru dengan kode seperti berikut.
+
+```php
+$routes->get('/artikel/(:any)', 'Artikel::detail_artikel/$1');
+```
+
+4. Buat file baru dengan nama `detail_artikel.php` didalam direktori `app/Views/artikel`.
+5. Tambahkan kode berikut.
+
+```php
+<?= $this->include('template/_header.php'); ?>
+
+<h1 class="display-4" style="font-size: 36px;">Detail <?= $artikel['judul'] ?></h1>
+
+<div class="card my-3">
+    <div class="card-header">
+        <h4><?= $artikel['judul'] ?></h4>
+    </div>
+
+    <div class="card-body">
+        <!-- <img src="<?= base_url() . '/gambar/' . $artikel['gambar'] ?>" alt="<?= $artikel['judul'] ?>"> -->
+        <p><?= $artikel['isi'] ?></p>
+    </div>
+
+    <div class="card-footer text-center">
+        <?= $artikel['date_created'] ?>
+    </div>
+</div>
+
+<?= $this->include('template/_footer.php'); ?>
+```
+
+6. Maka hasilnya sebagai berikut.
+
+![detail artikel](img/ss_detail-artikel.png)
+
+## Langkah 7 `Membuat Menu Admin`
