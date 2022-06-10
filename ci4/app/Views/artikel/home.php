@@ -5,7 +5,7 @@
 <?php if ($artikels) : foreach ($artikels as $artikel) : ?>
         <div class="card my-3">
             <div class="card-header">
-                <h4><a href="<?= base_url() . '/artikel/' . $artikel['slug'] ?>"><?= $artikel['judul'] ?></a></h4>
+                <h4><a href="<?= base_url() . '/artikel/detail/' . $artikel['slug'] ?>"><?= $artikel['judul'] ?></a></h4>
             </div>
 
             <div class="card-body">
