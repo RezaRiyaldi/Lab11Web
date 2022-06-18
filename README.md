@@ -1228,7 +1228,7 @@ class Auth implements FilterInterface {
     public function before(RequestInterface $request, $arguments = NULL)
     {
         if (!session()->get('logged_in')) {
-            session()->setFlashdata('error', "Login dulu bre biar asik");
+            session()->setFlashdata('errors', "Login dulu bre biar asik");
             return redirect()->to('user/login');
         }
     }
@@ -1258,7 +1258,7 @@ public $aliases = [
 3. Buka file `Routes.php`, lalu ubah kode seperti berikut.
 
 ```php
-$routes->group('artikel/admin', ['filters' => 'auth'], function($routes) {
+$routes->group('artikel/admin', ['filter' => 'auth'], function($routes) {
     $routes->get('/', 'Artikel::admin');
 
     // Add
@@ -1274,7 +1274,9 @@ $routes->group('artikel/admin', ['filters' => 'auth'], function($routes) {
 });
 ```
 
+4. Maka apabila belum login tapi memaksa masuk akan dilempar kembali, seperti berikut.
 
+![filter](img/ss_filter.png)
 
 ## Langkah 4 `Logout`
 1. Tambahkan method baru dengan nama `logout()` didalam Controller `User`.
@@ -1283,8 +1285,12 @@ $routes->group('artikel/admin', ['filters' => 'auth'], function($routes) {
 ```php
 public function logout()
 {
+    session()->set([
+        'logged_in' => FALSE
+    ]);
+    
     session()->remove([
-        'username', 'email', 'user_id', 'logged_in'
+        'user_id', 'username', 'email', 'password'
     ]);
     session()->setFlashdata('success', "Logout berhasil, semoga harimu senin terus");
     return redirect()->to('user/login');

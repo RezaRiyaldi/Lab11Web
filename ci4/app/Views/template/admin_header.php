@@ -3,6 +3,8 @@
 use CodeIgniter\Config\Services;
 
 $request = Services::request();
+// var_dump(session()->get());
+// session_destroy();
 ?>
 
 <!doctype html>

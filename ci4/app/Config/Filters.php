@@ -2,6 +2,7 @@
 
 namespace Config;
 
+use App\Filters\Auth;
 use CodeIgniter\Config\BaseConfig;
 use CodeIgniter\Filters\CSRF;
 use CodeIgniter\Filters\DebugToolbar;
@@ -25,7 +26,7 @@ class Filters extends BaseConfig
         'secureheaders' => SecureHeaders::class,
 
         // Your filter
-        'auth'          => App\Filters\Auth::class
+        'auth'          => Auth::class
     ];
 
     /**

@@ -48,8 +48,9 @@ class User extends BaseController
                 $login_data = [
                     'user_id' => $login['id'],
                     'username' => $login['username'],
+                    'email' => $login['useremail'],
                     'password' => $login['userpassword'],
-                    'logged_id' => TRUE
+                    'logged_in' => TRUE
                 ];
 
                 session()->set($login_data);
@@ -72,8 +73,12 @@ class User extends BaseController
 
     public function logout()
     {
+        session()->set([
+            'logged_in' => FALSE
+        ]);
+        
         session()->remove([
-            'username', 'email', 'user_id', 'logged_in'
+            'user_id', 'username', 'email', 'password'
         ]);
         session()->setFlashdata('success', "Logout berhasil, semoga harimu senin terus");
         return redirect()->to('user/login');

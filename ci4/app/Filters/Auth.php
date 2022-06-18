@@ -9,7 +9,7 @@ class Auth implements FilterInterface {
     public function before(RequestInterface $request, $arguments = NULL)
     {
         if (!session()->get('logged_in')) {
-            session()->setFlashdata('error', "Login dulu bre biar asik");
+            session()->setFlashdata('errors', "Login dulu bre biar asik");
             return redirect()->to('user/login');
         }
     }
