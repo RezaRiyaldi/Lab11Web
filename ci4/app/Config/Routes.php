@@ -42,7 +42,7 @@ $routes->get('/contact', 'Page::contact');
 $routes->get('/artikel', 'Artikel::index');
 $routes->get('/artikel/detail/(:any)', 'Artikel::detail_artikel/$1');
 
-$routes->group('artikel/admin', function($routes) {
+$routes->group('artikel/admin', ['filters' => 'auth'], function($routes) {
     $routes->get('/', 'Artikel::admin');
 
     // Add

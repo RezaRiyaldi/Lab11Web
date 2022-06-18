@@ -682,29 +682,53 @@ $request = Services::request();
 </head>
 
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark p-0" style="background-color: purple;">
-        <div class="container p-0">
-            <a class="navbar-brand" href="<?= base_url('artikel/admin') ?>">Admin</a>
-            <button class="navbar-toggler ms-auto m-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link <?= $request->uri->getSegment(3) == '' ? 'active' : '' ?>" href="<?= base_url('artikel/admin') ?>">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link <?= $request->uri->getSegment(3) == 'artikel' ? 'active' : '' ?>" href="<?= base_url('artikel') ?>">Artikel</a>
-                    </li>
-                </ul>
+    <?php
+    if (!isset($auth) || !$auth) {
+    ?>
+        <nav class="navbar navbar-expand-lg navbar-dark p-0" style="background-color: purple;">
+            <div class="container p-0">
+                <a class="navbar-brand" href="<?= base_url('artikel/admin') ?>">Admin</a>
+                <button class="navbar-toggler ms-auto m-1" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav">
+                        <li class="nav-item">
+                            <a class="nav-link <?= $request->uri->getSegment(3) == '' ? 'active' : '' ?>" href="<?= base_url('artikel/admin') ?>">Artikel</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link disabled <?= $request->uri->getSegment(3) == 'admin' ? 'active' : '' ?>" href="<?= base_url('artikel/admin') ?>">Admin</a>
+                        </li>
+
+                        <li class="nav-item">
+                            <a class="nav-link disabled <?= $request->uri->getSegment(3) == 'artikel' ? 'active' : '' ?>" href="<?= base_url('artikel/admin/user') ?>">User</a>
+                        </li>
+                    </ul>
+                </div>
+                <?php
+                if (session()->get('username') != NULL) {
+                ?>
+                    <div class="collapse navbar-collapse" id="navbarNav">
+                        <ul class="navbar-nav ms-auto">
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle active" href="#" id="navbarDropdownMenuLink" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    Hello, <?= session()->get('username') ?>
+                                </a>
+                                <ul class="dropdown-menu" aria-labelledby="navbarDropdownMenuLink">
+                                    <li><a class="dropdown-item" href="#">Logout</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </div>
+                <?php } ?>
             </div>
-        </div>
-    </nav>
+        </nav>
 
     <?php
+    }
     if (session()->getFlashdata('errors')) {
     ?>
-        <div class="alert alert-danger alert-dismissible fade show pb-0" role="alert">
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
             <div class="container">
                 <?= session()->getFlashdata('errors') ?>
                 <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
@@ -724,9 +748,15 @@ $request = Services::request();
 
 ```php
 // admin_footer.php
-<footer class="bg-dark text-white p-3 text-center">
-    <p class="m-0">&copy; 2022 - Universitas Pelita Bangsa @ Reza Riyaldi</p>
-</footer>
+<?php
+if (!isset($auth) || !$auth) {
+?>
+    <footer class="bg-dark text-white p-3 text-center">
+        <p class="m-0">&copy; 2022 - Universitas Pelita Bangsa @ Reza Riyaldi</p>
+    </footer>
+<?php
+}
+?>
 
 
 <script src="<?= base_url('js/bootstrap.min.js') ?>"></script>
@@ -1000,3 +1030,269 @@ public function delete($slug)
 3. Apabila yes akan seperti berikut.
 
 ![delete](img/ss_delete-1.png)
+
+# Tugas Lab 11 Web (Praktikum 13 `Module Login`)
+## Langkah 1 `Membuat Table`
+1. Buat table dengan menggunakan query berikut.
+
+```sql
+CREATE TABLE user (
+    id INT(11) auto_increment,
+    username VARCHAR(200) NOT NULL,
+    useremail VARCHAR(200),
+    userpassword VARCHAR(200),
+    PRIMARY KEY(id)
+);
+```
+
+2. Buat Model baru dengan nama `UserModel.php` didalam direktori `/app/Models`. Lalu tambahkan kode berikut.
+
+```php
+<?php
+
+use CodeIgniter\Model;
+
+class UserModel extends Model {
+    protected $table = 'user';
+    protected $primaryKey = 'id';
+    protected $useAutoIncrement = TRUE;
+    protected $allowedFields = ['username', 'useremail', 'userpassword'];
+}
+```
+3. Buat Controller baru dengan nama `User.php` didalam direktori `app/Controllers`. Laliu tambahkan kode berikut.
+
+```php
+<?php
+
+use App\Controllers\BaseController;
+
+class User extends BaseController
+{
+    private $user;
+
+    public function __construct()
+    {
+        $user = new UserModel();
+        helper('form');
+    }
+
+    public function index()
+    {
+        $data = [
+            'title' => 'Daftar User',
+            'users' => $this->user->findAll()
+        ];
+
+        return view('user/index', $data);
+    }
+
+    public function login()
+    {
+        $input = (object) $this->request->getPost();
+        $message = "";
+        $type_message = "errors";
+
+        if (!$input->email) {
+            $data = [
+                'title' => 'Login',
+                'auth' => TRUE
+            ];
+            return view('user/login', $data);
+        }
+        $login = $this->user->where('useremail', $input->email)->first();
+        if ($login) {
+            $pass = $login['userpassword'];
+            if (password_verify($input->password, $pass)) {
+                $login_data = [
+                    'user_id' => $login['id'],
+                    'username' => $login['username'],
+                    'password' => $login['password'],
+                    'logged_id' => TRUE
+                ];
+
+                session()->set($login_data);
+                $type_message = "success";
+                $message = "Login berhasil, selamat datang " . $login['username'];
+            } else {
+                $message = "Password salah!";
+            }
+        } else {
+            $message = "User tidak ditemukan!";
+        }
+
+        session()->setFlashdata($type_message, $message);
+        if ($type_message != "errors") {
+            return redirect('admin/artikel');
+        } else {
+            return redirect('user/login');
+        }
+    }
+}
+```
+
+4. Buat direktori baru dengan `user` didalam direktori `app/Views`.
+5. Buat file baru dengan nama `login.php` didalam direktori `app/Views/user`, lalu tambahkan kode berikut.
+
+```php
+<?= $this->include('template/admin_header.php'); ?>
+<div class="row m-0">
+    <div class="col-md-4 mx-auto">
+        <div class="card mt-5">
+            <div class="card-header">
+                <h4>Login</h4>
+            </div>
+
+            <div class="card-body">
+                <form action="" method="post">
+                    <div class="mb-3">
+                        <label for="" class="form-label">Email</label>
+                        <input type="email" class="form-control" name="email" value="<?= set_value('email') ?>">
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="" class="form-label">Password</label>
+                        <input type="password" class="form-control" name="password" value="<?= set_value('password') ?>">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Login</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<?= $this->include('template/admin_footer.php'); ?>
+```
+
+5. Maka hasilnya sebagai berikut.
+
+![login](img/ss_login.png)
+
+## Langkah 2 `Membuat Data Dummy`
+1. Buka CLI/terminal, dan ketik
+
+```
+php spark make:seeder UserSeed
+```
+
+2. Buka file `UserSeed.php` didalam direktori `app/Database/Seeds`, lalu tambahkan kode berikut.
+
+```php
+<?php
+
+namespace App\Database\Seeds;
+
+use CodeIgniter\Database\Seeder;
+
+class UserSeed extends Seeder
+{
+    public function run()
+    {
+        $model = model('UserModel');
+        $model->insert([
+            'username' => 'admin',
+            'useremail' => 'admin@hotmail.com',
+            'userpassword' => password_hash('admin', PASSWORD_DEFAULT)
+        ]);
+    }
+}
+```
+3. Buka kembali CLI/terminal, lalu ketik.
+
+```
+php spark db:seed UserSeed
+```
+
+4. Lalu coba login menggunakan akun yang sudah ditambahkan didalam seeds.
+    + email : admin@hotmail.com
+    + password : admin
+5. Maka hasilnya sebagai berikut.
+
+![login](img/ss_login-1.png)
+
+6. Namun apabila akun tidak ada maka hasilnya akan sebagai berikut.
+
+![login](img/ss_login-2.png)
+
+## Langkah 3 `Auth Filter`
+1. Buat file baru dengan nama `Auth.php` didalam direktori `app/Filters`. Lalu tambahkan kode berikut.
+
+```php
+<?php
+namespace App\Filters;
+
+use CodeIgniter\Filters\FilterInterface;
+use CodeIgniter\HTTP\RequestInterface;
+use CodeIgniter\HTTP\ResponseInterface;
+
+class Auth implements FilterInterface {
+    public function before(RequestInterface $request, $arguments = NULL)
+    {
+        if (!session()->get('logged_in')) {
+            session()->setFlashdata('error', "Login dulu bre biar asik");
+            return redirect()->to('user/login');
+        }
+    }
+
+    public function after(RequestInterface $request, ResponseInterface $response, $arguments = NULL)
+    {
+        // Do something here
+    }
+}
+```
+
+2. Buka file `app\Config\Filters.php`, lalu tambahkan kode berikut.
+
+```php
+public $aliases = [
+    'csrf'          => CSRF::class,
+    'toolbar'       => DebugToolbar::class,
+    'honeypot'      => Honeypot::class,
+    'invalidchars'  => InvalidChars::class,
+    'secureheaders' => SecureHeaders::class,
+
+    // Your filter
+    'auth'          => App\Filters\Auth::class
+];
+```
+
+3. Buka file `Routes.php`, lalu ubah kode seperti berikut.
+
+```php
+$routes->group('artikel/admin', ['filters' => 'auth'], function($routes) {
+    $routes->get('/', 'Artikel::admin');
+
+    // Add
+    $routes->get('add', 'Artikel::add_artikel');
+    $routes->add('store', 'Artikel::store');
+
+    // Edit
+    $routes->get('edit/(:any)', 'Artikel::edit/$1');
+    $routes->add('update/(:any)', 'Artikel::update/$1');
+
+    // Delete
+    $routes->get('delete/(:any)', 'Artikel::delete/$1');
+});
+```
+
+
+
+## Langkah 4 `Logout`
+1. Tambahkan method baru dengan nama `logout()` didalam Controller `User`.
+2. Tambahkan kode berikut.
+
+```php
+public function logout()
+{
+    session()->remove([
+        'username', 'email', 'user_id', 'logged_in'
+    ]);
+    session()->setFlashdata('success', "Logout berhasil, semoga harimu senin terus");
+    return redirect()->to('user/login');
+}
+```
+
+3. Maka hasilnya sebagai berikut.
+
+![logout](img/ss_logout-0.png)
+
+![logout](img/ss_logout-1.png)
