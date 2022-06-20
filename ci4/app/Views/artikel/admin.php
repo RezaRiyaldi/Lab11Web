@@ -3,6 +3,11 @@
 <div class="container py-5">
     <h1 class="display-4 d-inline" style="font-size: 36px; border-bottom: 5px solid #ddd;"><?= $title ?></h1>
 
+    <form method="get" class="mt-4">
+        <input type="text" name="cari" value="<?= $cari ?>" placeholder="Cari data" class="form-control align-middle" style="display: inline; width: auto;">
+        <button class="btn btn-primary" style="display: inline" type="submit">Cari</button>
+    </form> 
+
     <a href="<?= base_url('artikel/admin/add') ?>" class="btn btn-primary btn-sm d-block mt-4">+ Tambah Artikel</a>
     <table class="table table-hover table-bordered">
         <thead>
@@ -48,6 +53,7 @@
             </tr>
         </tfoot> -->
     </table>
+    <?= $pager->only(['cari'])->links('btcorona', 'bootstrap_pagination') ?>
 </div>
 
 <?= $this->include('template/admin_footer.php'); ?>

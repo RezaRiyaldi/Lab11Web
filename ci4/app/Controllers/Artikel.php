@@ -42,10 +42,16 @@ class Artikel extends Controller
 
     public function admin()
     {
-        $title = 'Daftar Artikel';
-        $artikels = $this->artikel->findAll();
+        $cari = $this->request->getVar('cari') ?? '';
+        $artikels = $this->artikel->like('judul', $cari)->paginate(5, 'btcorona');
+        $data = [
+            'title' => 'Daftar Artikel',
+            'artikels' => $artikels,
+            'pager' => $this->artikel->pager,
+            'cari' => $cari
+        ];
 
-        return view('artikel/admin', compact('title', 'artikels'));
+        return view('artikel/admin', $data);
     }
 
     public function add_artikel()
@@ -77,10 +83,14 @@ class Artikel extends Controller
 
         // var_dump($this->request->getPost()); die();
 
+        $file = $this->request->getFile('gambar');
+        // var_dump($file); die();
+        $file->move(ROOTPATH . 'public/img');
         $this->artikel->insert([
             'judul' => ucwords(strtolower($this->request->getPost('judul'))),
             'isi' => $this->request->getPost('isi'),
             'slug' => url_title(strtolower($this->request->getPost('judul'))),
+            'gambar' => $file->getName(),
             'date_created' => Time::now()
         ]);
 
@@ -90,7 +100,7 @@ class Artikel extends Controller
 
     public function edit($slug)
     {
-        $data =[
+        $data = [
             'title' => 'Edit Artikel',
             'artikel' => $this->artikel->where('slug', $slug)->first()
         ];
@@ -132,7 +142,7 @@ class Artikel extends Controller
 
     public function delete($slug)
     {
-        if($this->artikel->where('slug', $slug)->first() === NULL) {
+        if ($this->artikel->where('slug', $slug)->first() === NULL) {
             throw PageNotFoundException::forPageNotFound('Data tidak ditemukan!');
         }
 

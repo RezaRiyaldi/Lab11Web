@@ -7,7 +7,7 @@
         <div class="col-md-6 p-0">
             <div class="card">
                 <div class="card-body">
-                    <form action="<?= base_url('artikel/admin/store') ?>" method="post">
+                    <form action="<?= base_url('artikel/admin/store') ?>" method="post" enctype="multipart/form-data">
                         <div class="mb-3">
                             <label for="" class="form-label">Judul</label>
                             <input type="text" class="form-control" name="judul" placeholder="Masukan judul yang menarik" value="<?= old('judul') ?>">
@@ -16,6 +16,11 @@
                         <div class="mb-3">
                             <label for="" class="form-label">Isi</label>
                             <textarea name="isi" id="" cols="" rows="" placeholder="Buatlah artikel yang menarik" class="form-control"><?= old('isi') ?></textarea>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="" class="form-label">Gambar</label>
+                            <input type="file" name="gambar" id="" class="form-control">
                         </div>
 
                         <button type="submit" class="btn btn-primary">Tambah Artikel</button>

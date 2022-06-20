@@ -1243,16 +1243,29 @@ class Auth implements FilterInterface {
 2. Buka file `app\Config\Filters.php`, lalu tambahkan kode berikut.
 
 ```php
-public $aliases = [
-    'csrf'          => CSRF::class,
-    'toolbar'       => DebugToolbar::class,
-    'honeypot'      => Honeypot::class,
-    'invalidchars'  => InvalidChars::class,
-    'secureheaders' => SecureHeaders::class,
+use App\Filters\Auth;
+...
 
-    // Your filter
-    'auth'          => App\Filters\Auth::class
-];
+class Filters extends BaseConfig
+{
+    /**
+     * Configures aliases for Filter classes to
+     * make reading things nicer and simpler.
+     *
+     * @var array
+     */
+    public $aliases = [
+        'csrf'          => CSRF::class,
+        'toolbar'       => DebugToolbar::class,
+        'honeypot'      => Honeypot::class,
+        'invalidchars'  => InvalidChars::class,
+        'secureheaders' => SecureHeaders::class,
+
+        // Your filter
+        'auth'          => Auth::class
+    ];
+    ...
+} 
 ```
 
 3. Buka file `Routes.php`, lalu ubah kode seperti berikut.
@@ -1302,3 +1315,201 @@ public function logout()
 ![logout](img/ss_logout-0.png)
 
 ![logout](img/ss_logout-1.png)
+
+# Tugas Lab 11 Web (Praktikum 14 `Pagination & Pencarian`)
+## Langkah 1 `Membuat Pagination`
+1. Buka kembali Controller Artikel, lalu modifikasi kode pada method `admin()` seperti berikut.
+
+```php
+public function admin()
+{
+    $artikels = $this->artikel->paginate(5, 'btcorona');
+    $data = [
+        'title' => 'Daftar Artikel',
+        'artikels' => $artikels,
+        'pager' => $this->artikel->pager
+    ];
+
+    return view('artikel/admin', $data);
+}
+```
+
+2. Buat file baru bernama `bootstrap.php` didalam `app/Views/Pagers/`, Lalu buat kode seperti berikut.
+
+```php
+<?php $pager->setSurroundCount(2) ?>
+<nav>
+    <ul class="pagination">
+        <?php if ($pager->hasPrevious()) { ?>
+            <li class="page-item">
+                <a href="<?= $pager->getFirst() ?>" aria-label="First" class="page-link">
+                    <span aria-hidden="true">First</span>
+                </a>
+            </li>
+
+            <li class="page-item">
+                <a href="<?= $pager->getPrevious() ?>" aria-label="Previous" class="page-link">
+                    <span>&laquo;</span>
+                </a>
+            </li>
+        <?php } ?>
+
+        <?php
+        foreach ($pager->links() as $link) {
+            $activeClass = $link['active'] ? 'active' : '';
+        ?>
+            <li class="page-item <?= $activeClass ?>">
+                <a href="<?= $link['uri'] ?>" class="page-link">
+                    <?= $link['title'] ?>
+                </a>
+            </li>
+        <?php } ?>
+
+        <?php if ($pager->hasNext()) { ?>
+            <li class="page-item">
+                <a href="<?= $pager->getNext() ?>" aria-label="Next" class="page-link">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+            <li class="page-item">
+                <a href="<?= $pager->getLast() ?>" aria-label="Last" class="page-link">
+                    <span aria-hidden="true">Last</span>
+                </a>
+            </li>
+        <?php } ?>
+    </ul>
+</nav>
+```
+
+3. Mendaftarkan View ke Config, buka file `app/Config/Pager.php`, lalu tambahkan kode berikut.
+
+```php
+public $templates = [
+    ...
+
+    // Custom Pagination
+    'bootstrap_pagination' => 'App\Views\Pagers\bootstrap'
+];
+```
+
+4. Buka file `admin.php` lalu tambahkan kode berikut.
+
+```php
+<?= $this->include('template/admin_header.php'); ?>
+
+<div class="container py-5">
+    ...
+    <?= $pager->links('btcorona', 'bootstrap_pagination') ?>
+</div>
+
+<?= $this->include('template/admin_footer.php'); ?>
+```
+
+5. Maka hasilnya sebagai berikut.
+
+![pagination](img/ss_pagination.png)
+
+## Langkah 2 `Membuat Search`
+1. Buka kembali Controller `Artikel.php`, lalu ubah kode menjadi seperti berikut.
+
+```php
+public function admin()
+{
+    $cari = $this->request->getVar('cari') ?? '';
+    $artikels = $this->artikel->like('judul', $cari)->paginate(5, 'btcorona');
+    $data = [
+        'title' => 'Daftar Artikel',
+        'artikels' => $artikels,
+        'pager' => $this->artikel->pager,
+        'cari' => $cari
+    ];
+
+    return view('artikel/admin', $data);
+}
+```
+
+2. Tambahkan input form pada Views `admin.php`
+
+```html
+<form method="get" class="mt-4">
+    <input type="text" name="cari" value="<?= $cari ?>" placeholder="Cari data" class="form-control align-middle" style="display: inline; width: auto;">
+    <button class="btn btn-primary" style="display: inline" type="submit">Cari</button>
+</form> 
+```
+
+3. Maka hasilnya sebagai berikut.
+
+![Form Search](img/ss_search1.png)
+
+4. Ubah link pagination menjadi berikut.
+
+```php
+<?= $pager->only(['cari'])->links('btcorona', 'bootstrap_pagination') ?>
+```
+
+5. Apabila kita coba mencari, maka hasilnya sebagai berikut.
+
+![Form Search](img/ss_search2.png)
+
+
+## Langkah 3 `Membuat Upload Gambar`
+1. Buka Controller Artikel dan ubah method `store()` seperti berikut.
+
+```php
+public function store()
+{
+    if (!$this->validate([
+        'judul' => [
+            'rules' => 'required',
+            'errors' => [
+                'required' => 'Judulnya diisi dong sayang'
+            ],
+        ],
+        'isi' => [
+            'rules' => 'min_length[10]',
+            'errors' => [
+                'min_length' => 'Isi konten 10 karakter aja kok, yok bisa yok'
+            ]
+        ]
+    ])) {
+        session()->setFlashdata('errors', $this->validator->listErrors());
+        return redirect()->back()->withInput();
+    }
+
+    // var_dump($this->request->getPost()); die();
+
+    $file = $this->request->getFile('gambar');
+    $file->move(ROOTPATH . 'public/img');
+    $this->artikel->insert([
+        'judul' => ucwords(strtolower($this->request->getPost('judul'))),
+        'isi' => $this->request->getPost('isi'),
+        'slug' => url_title(strtolower($this->request->getPost('judul'))),
+        'gambar' => $file->getName(),
+        'date_created' => Time::now()
+    ]);
+
+    session()->setFlashdata('success', 'Berhasil menambah data');
+    return redirect()->to('artikel/admin');
+}
+```
+
+2. Tambahkan field input file pada `tambah_artikel` di direktori `app/Views/artikel` seperti berikut.
+
+```html
+<div class="mb-3">
+    <label for="" class="form-label">Gambar</label>
+    <input type="file" name="gambar" id="" class="form-control">
+</div>
+```
+
+3. Sesuaikan tag formnya menjadi seperti berikut.
+
+```html
+<form action="<?= base_url('artikel/admin/store') ?>" method="post" enctype="multipart/form-data">
+```
+
+4. Maka tampilannya akan seperti berikut.
+
+![Upload](img/ss_upload.png)
+
+![Upload](img/ss_upload2.png)

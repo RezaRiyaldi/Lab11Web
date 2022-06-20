@@ -9,7 +9,7 @@
             </div>
 
             <div class="card-body">
-                <!-- <img src="<?= base_url() . '/gambar/' . $artikel['gambar'] ?>" alt="<?= $artikel['judul'] ?>"> -->
+                <img src="<?= base_url() . '/img/' . $artikel['gambar'] ?>" alt="<?= $artikel['judul'] ?>" height="200px">
                 <p><?= substr($artikel['isi'], 0, 200) ?></p>
             </div>
 
