@@ -40,6 +40,7 @@ class User extends BaseController
             ];
             return view('user/login', $data);
         }
+        
         $login = $this->user->where('useremail', $email)->first();
         if ($login) {
             $pass = $login['userpassword'];
